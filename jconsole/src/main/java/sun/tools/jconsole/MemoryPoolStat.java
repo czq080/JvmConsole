@@ -9,33 +9,33 @@ package sun.tools.jconsole;
 import java.lang.management.MemoryUsage;
 
 public class MemoryPoolStat {
-    private String      poolName; 
-    private long        usageThreshold; 
-    private MemoryUsage usage; 
-    private long        lastGcId;
-    private long        lastGcStartTime;
-    private long        lastGcEndTime;
-    private long        collectThreshold; 
-    private MemoryUsage beforeGcUsage; 
+    private String poolName;
+    private long usageThreshold;
+    private MemoryUsage usage;
+    private long lastGcId;
+    private long lastGcStartTime;
+    private long lastGcEndTime;
+    private long collectThreshold;
+    private MemoryUsage beforeGcUsage;
     private MemoryUsage afterGcUsage;
-    
-    MemoryPoolStat(String name, 
-                   long usageThreshold, 
-                   MemoryUsage usage, 
+
+    MemoryPoolStat(String name,
+                   long usageThreshold,
+                   MemoryUsage usage,
                    long lastGcId,
                    long lastGcStartTime,
                    long lastGcEndTime,
-                   long collectThreshold, 
-                   MemoryUsage beforeGcUsage, 
+                   long collectThreshold,
+                   MemoryUsage beforeGcUsage,
                    MemoryUsage afterGcUsage) {
-        this.poolName = name; 
-        this.usageThreshold = usageThreshold; 
-        this.usage = usage; 
+        this.poolName = name;
+        this.usageThreshold = usageThreshold;
+        this.usage = usage;
         this.lastGcId = lastGcId;
         this.lastGcStartTime = lastGcStartTime;
         this.lastGcEndTime = lastGcEndTime;
-        this.collectThreshold = collectThreshold; 
-        this.beforeGcUsage = beforeGcUsage; 
+        this.collectThreshold = collectThreshold;
+        this.beforeGcUsage = beforeGcUsage;
         this.afterGcUsage = afterGcUsage;
     }
 
@@ -47,7 +47,7 @@ public class MemoryPoolStat {
     }
 
     /**
-     * Returns the current memory usage.  
+     * Returns the current memory usage.
      */
     public MemoryUsage getUsage() {
         return usage;
@@ -70,7 +70,7 @@ public class MemoryPoolStat {
     }
 
     /**
-     * Returns the Id of GC.  
+     * Returns the Id of GC.
      */
     public long getLastGcId() {
         return lastGcId;
@@ -80,7 +80,7 @@ public class MemoryPoolStat {
     /**
      * Returns the start time of the most recent GC on
      * the memory pool for this statistics in milliseconds.
-     * 
+     * <p>
      * Return 0 if no GC occurs.
      */
     public long getLastGcStartTime() {
@@ -90,7 +90,7 @@ public class MemoryPoolStat {
     /**
      * Returns the end time of the most recent GC on
      * the memory pool for this statistics in milliseconds.
-     * 
+     * <p>
      * Return 0 if no GC occurs.
      */
     public long getLastGcEndTime() {
@@ -102,7 +102,7 @@ public class MemoryPoolStat {
      * null if no GC occurs.
      */
     public MemoryUsage getBeforeGcUsage() {
-        return beforeGcUsage; 
+        return beforeGcUsage;
     }
 
     /**
@@ -110,6 +110,6 @@ public class MemoryPoolStat {
      * null if no GC occurs.
      */
     public MemoryUsage getAfterGcUsage() {
-        return beforeGcUsage; 
+        return beforeGcUsage;
     }
 }

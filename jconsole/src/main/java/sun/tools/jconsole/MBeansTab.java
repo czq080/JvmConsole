@@ -34,43 +34,61 @@ import java.util.Set;
 public class MBeansTab extends Tab implements
         NotificationListener, PropertyChangeListener,
         TreeSelectionListener, TreeWillExpandListener {
-    
+
     private XTree tree;
     private XSheet sheet;
     private XDataViewer viewer;
-    
-    public static String getTabName() {
-        return Resources.getText("MBeans");
-    }
-    
+    /* tree mouse listener: mousePressed */
+    private MouseListener ml = new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e) {
+            if (e.getClickCount() == 1) {
+                int selRow = tree.getRowForLocation(e.getX(), e.getY());
+                if (selRow != -1) {
+                    TreePath selPath =
+                            tree.getPathForLocation(e.getX(), e.getY());
+                    DefaultMutableTreeNode node =
+                            (DefaultMutableTreeNode) selPath.getLastPathComponent();
+                    if (sheet.isMBeanNode(node)) {
+                        tree.expandPath(selPath);
+                    }
+                }
+            }
+        }
+    };
+
     public MBeansTab(final VMPanel vmPanel) {
         super(vmPanel, getTabName());
         addPropertyChangeListener(this);
         setupTab();
     }
-    
+
+    public static String getTabName() {
+        return Resources.getText("MBeans");
+    }
+
     public XDataViewer getDataViewer() {
         return viewer;
     }
-    
+
     public XTree getTree() {
         return tree;
     }
-    
+
     public XSheet getSheet() {
         return sheet;
     }
-    
+
     @Override
     public void dispose() {
         super.dispose();
         sheet.dispose();
     }
-    
+
     public int getUpdateInterval() {
         return vmPanel.getUpdateInterval();
     }
-    
+
     private void buildMBeanServerView() {
         new SwingWorker<Set<ObjectName>, Void>() {
             @Override
@@ -101,7 +119,7 @@ public class MBeansTab extends Tab implements
                 //
                 Set<ObjectName> mbeans = null;
                 try {
-                    mbeans = getMBeanServerConnection().queryNames(null,null);
+                    mbeans = getMBeanServerConnection().queryNames(null, null);
                 } catch (IOException e) {
                     if (JConsole.isDebug()) {
                         e.printStackTrace();
@@ -111,6 +129,7 @@ public class MBeansTab extends Tab implements
                 }
                 return mbeans;
             }
+
             @Override
             protected void done() {
                 try {
@@ -138,7 +157,7 @@ public class MBeansTab extends Tab implements
             }
         }.execute();
     }
-    
+
     public MBeanServerConnection getMBeanServerConnection() {
         return vmPanel.getProxyClient().getMBeanServerConnection();
     }
@@ -160,14 +179,14 @@ public class MBeansTab extends Tab implements
             vmPanel.getProxyClient().markAsDead();
         }
     }
-    
+
     private void setupTab() {
         // set up the split pane with the MBean tree and MBean sheet panels
         setLayout(new BorderLayout());
         JSplitPane mainSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         mainSplit.setDividerLocation(160);
         mainSplit.setBorder(BorderFactory.createEmptyBorder());
-        
+
         // set up the MBean tree panel (left pane)
         tree = new XTree(this);
         tree.setCellRenderer(new XTreeRenderer());
@@ -183,15 +202,15 @@ public class MBeansTab extends Tab implements
         JPanel treePanel = new JPanel(new BorderLayout());
         treePanel.add(theScrollPane, BorderLayout.CENTER);
         mainSplit.add(treePanel, JSplitPane.LEFT, 0);
-        
+
         // set up the MBean sheet panel (right pane)
         viewer = new XDataViewer(this);
         sheet = new XSheet(this);
         mainSplit.add(sheet, JSplitPane.RIGHT, 0);
-        
+
         add(mainSplit);
     }
-    
+
     /* notification listener:  handleNotification */
     public void handleNotification(
             final Notification notification, Object handback) {
@@ -211,7 +230,7 @@ public class MBeansTab extends Tab implements
             }
         });
     }
-    
+
     /* property change listener:  propertyChange */
     public void propertyChange(PropertyChangeEvent evt) {
         if (JConsoleContext.CONNECTION_STATE_PROPERTY.equals(evt.getPropertyName())) {
@@ -223,36 +242,17 @@ public class MBeansTab extends Tab implements
             }
         }
     }
-    
+
     /* tree selection listener: valueChanged */
     public void valueChanged(TreeSelectionEvent e) {
         DefaultMutableTreeNode node =
                 (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
         sheet.displayNode(node);
     }
-    
-    /* tree mouse listener: mousePressed */
-    private MouseListener ml = new MouseAdapter() {
-        @Override
-        public void mousePressed(MouseEvent e) {
-            if (e.getClickCount() == 1) {
-                int selRow = tree.getRowForLocation(e.getX(), e.getY());
-                if (selRow != -1) {
-                    TreePath selPath =
-                            tree.getPathForLocation(e.getX(), e.getY());
-                    DefaultMutableTreeNode node =
-                            (DefaultMutableTreeNode) selPath.getLastPathComponent();
-                    if (sheet.isMBeanNode(node)) {
-                        tree.expandPath(selPath);
-                    }
-                }
-            }
-        }
-    };
-    
+
     /* tree will expand listener: treeWillExpand */
     public void treeWillExpand(TreeExpansionEvent e)
-    throws ExpandVetoException {
+            throws ExpandVetoException {
         TreePath path = e.getPath();
         if (!tree.hasBeenExpanded(path)) {
             DefaultMutableTreeNode node =
@@ -262,9 +262,9 @@ public class MBeansTab extends Tab implements
             }
         }
     }
-    
+
     /* tree will expand listener: treeWillCollapse */
     public void treeWillCollapse(TreeExpansionEvent e)
-    throws ExpandVetoException {
+            throws ExpandVetoException {
     }
 }

@@ -22,27 +22,28 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 @SuppressWarnings("serial")
 public class XMBeanNotifications extends JTable implements NotificationListener {
-    
-    private final static String[] columnNames =  {
-        Resources.getText("TimeStamp"),
-        Resources.getText("Type"),
-        Resources.getText("UserData"),
-        Resources.getText("SeqNum"),
-        Resources.getText("Message"),
-        Resources.getText("Event"),
-        Resources.getText("Source")};
-    
+
+    public final static String NOTIFICATION_RECEIVED_EVENT =
+            "jconsole.xnotification.received";
+    private final static String[] columnNames = {
+            Resources.getText("TimeStamp"),
+            Resources.getText("Type"),
+            Resources.getText("UserData"),
+            Resources.getText("SeqNum"),
+            Resources.getText("Message"),
+            Resources.getText("Event"),
+            Resources.getText("Source")};
+    private static TableCellEditor editor =
+            new Utils.ReadOnlyTableCellEditor(new JTextField());
     private HashMap<ObjectName, XMBeanNotificationsListener> listeners =
             new HashMap<ObjectName, XMBeanNotificationsListener>();
     private volatile boolean subscribed;
     private XMBeanNotificationsListener currentListener;
-    public final static String NOTIFICATION_RECEIVED_EVENT =
-            "jconsole.xnotification.received";
     private List<NotificationListener> notificationListenersList;
     private volatile boolean enabled;
     private Font normalFont, boldFont;
@@ -50,20 +51,18 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
     private TableCellEditor userDataEditor = new UserDataCellEditor();
     private NotifMouseListener mouseListener = new NotifMouseListener();
     private SimpleDateFormat timeFormater = new SimpleDateFormat("HH:mm:ss:SSS");
-    private static TableCellEditor editor =
-            new Utils.ReadOnlyTableCellEditor(new JTextField());
-    
+
     public XMBeanNotifications() {
-        super(new TableSorter(columnNames,0));
+        super(new TableSorter(columnNames, 0));
         setColumnSelectionAllowed(false);
         setRowSelectionAllowed(false);
         getTableHeader().setReorderingAllowed(false);
         ArrayList<NotificationListener> l =
                 new ArrayList<NotificationListener>(1);
         notificationListenersList = Collections.synchronizedList(l);
-        
+
         addMouseListener(mouseListener);
-        
+
         TableColumnModel colModel = getColumnModel();
         colModel.getColumn(0).setPreferredWidth(45);
         colModel.getColumn(1).setPreferredWidth(50);
@@ -74,7 +73,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
         setColumnEditors();
         addKeyListener(new Utils.CopyKeyAdapter());
     }
-    
+
     // Call on EDT
     public void cancelCellEditing() {
         TableCellEditor tce = getCellEditor();
@@ -82,7 +81,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
             tce.cancelCellEditing();
         }
     }
-    
+
     // Call on EDT
     public void stopCellEditing() {
         TableCellEditor tce = getCellEditor();
@@ -90,7 +89,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
             tce.stopCellEditing();
         }
     }
-    
+
     // Call on EDT
     @Override
     public boolean isCellEditable(int row, int col) {
@@ -100,12 +99,12 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
         }
         return true;
     }
-    
+
     // Call on EDT
     @Override
     public void setValueAt(Object value, int row, int column) {
     }
-    
+
     // Call on EDT
     @Override
     public synchronized Component prepareRenderer(
@@ -115,9 +114,9 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
         //It can happen when MBean selection is switched at a very quick rate
         if (row >= getRowCount())
             return null;
-        
+
         Component comp = super.prepareRenderer(renderer, row, column);
-        
+
         if (normalFont == null) {
             normalFont = comp.getFont();
             boldFont = normalFont.deriveFont(Font.BOLD);
@@ -127,16 +126,16 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
             comp.setFont(boldFont);
             int size = cell.getHeight();
             if (size > 0) {
-                if(getRowHeight(row) != size)
+                if (getRowHeight(row) != size)
                     setRowHeight(row, size);
             }
         } else {
             comp.setFont(normalFont);
         }
-        
+
         return comp;
     }
-    
+
     // Call on EDT
     @Override
     public synchronized TableCellRenderer getCellRenderer(int row, int column) {
@@ -145,7 +144,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
         //It can happen when MBean selection is switched at a very quick rate
         if (row >= getRowCount())
             return null;
-        
+
         DefaultTableCellRenderer renderer;
         String toolTip = null;
         UserDataCell cell = getUserDataCell(row, column);
@@ -155,33 +154,33 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
             renderer =
                     (DefaultTableCellRenderer) super.getCellRenderer(row, column);
         }
-        
+
         if (cell != null)
             toolTip = Resources.getText("Double click to expand/collapse") +
                     ". " + cell.toString();
         else {
             Object val =
-                    ((DefaultTableModel) getModel()).getValueAt(row, column);
+                    getModel().getValueAt(row, column);
             if (val != null)
                 toolTip = val.toString();
         }
-        
+
         renderer.setToolTipText(toolTip);
-        
+
         return renderer;
     }
-    
+
     // Call on EDT
     private UserDataCell getUserDataCell(int row, int column) {
-        Object obj = ((DefaultTableModel) getModel()).getValueAt(row,column);
+        Object obj = getModel().getValueAt(row, column);
         if (obj instanceof UserDataCell) return (UserDataCell) obj;
         return null;
     }
-    
+
     synchronized void dispose() {
         listeners.clear();
     }
-    
+
     public long getReceivedNotifications(XMBean mbean) {
         XMBeanNotificationsListener listener =
                 listeners.get(mbean.getObjectName());
@@ -190,7 +189,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
         else
             return listener.getReceivedNotifications();
     }
-    
+
     public synchronized boolean clearCurrentNotifications() {
         emptyTable();
         if (currentListener != null) {
@@ -199,14 +198,14 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
         } else
             return false;
     }
-    
+
     public synchronized boolean unregisterListener(DefaultMutableTreeNode node) {
         XMBean mbean = (XMBean) ((XNodeInfo) node.getUserObject()).getData();
         return unregister(mbean.getObjectName());
     }
-    
+
     public synchronized void registerListener(DefaultMutableTreeNode node)
-    throws InstanceNotFoundException, IOException {
+            throws InstanceNotFoundException, IOException {
         XMBean mbean = (XMBean) ((XNodeInfo) node.getUserObject()).getData();
         if (!subscribed) {
             try {
@@ -235,7 +234,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
         enabled = true;
         currentListener = listener;
     }
-    
+
     public synchronized void handleNotification(
             Notification notif, Object handback) {
         try {
@@ -246,20 +245,20 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
                     unregister(mbean);
                 }
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             if (JConsole.isDebug()) {
                 System.err.println("Error unregistering notification:");
                 e.printStackTrace();
             }
         }
     }
-    
+
     public synchronized void disableNotifications() {
         emptyTable();
         currentListener = null;
         enabled = false;
     }
-    
+
     private synchronized boolean unregister(ObjectName mbean) {
         XMBeanNotificationsListener listener = listeners.get(mbean);
         if (listener != null && listener.isRegistered()) {
@@ -268,15 +267,15 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
         } else
             return false;
     }
-    
+
     public void addNotificationsListener(NotificationListener nl) {
         notificationListenersList.add(nl);
     }
-    
+
     public void removeNotificationsListener(NotificationListener nl) {
         notificationListenersList.remove(nl);
     }
-    
+
     // Call on EDT
     void fireNotificationReceived(
             XMBeanNotificationsListener listener, XMBean mbean,
@@ -294,7 +293,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
         for (NotificationListener nl : notificationListenersList)
             nl.handleNotification(notif, node);
     }
-    
+
     // Call on EDT
     private void updateModel(List<Object[]> data) {
         emptyTable();
@@ -302,14 +301,14 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
         for (Object[] rowData : data)
             tableModel.addRow(rowData);
     }
-    
+
     public synchronized boolean isListenerRegistered(XMBean mbean) {
         XMBeanNotificationsListener listener =
                 listeners.get(mbean.getObjectName());
         if (listener == null) return false;
         return listener.isRegistered();
     }
-    
+
     // Call on EDT
     public synchronized void loadNotifications(XMBean mbean) {
         XMBeanNotificationsListener listener =
@@ -325,7 +324,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
         } else
             enabled = false;
     }
-    
+
     // Call on EDT
     private void setColumnEditors() {
         TableColumnModel tcm = getColumnModel();
@@ -338,12 +337,12 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
             }
         }
     }
-    
+
     // Call on EDT
     public boolean isTableEditable() {
         return true;
     }
-    
+
     // Call on EDT
     public synchronized void emptyTable() {
         DefaultTableModel model = (DefaultTableModel) getModel();
@@ -352,7 +351,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
             model.removeRow(0);
         validate();
     }
-    
+
     // Call on EDT
     synchronized void updateUserDataCell(int row, int col) {
         Object obj = getModel().getValueAt(row, 2);
@@ -363,23 +362,24 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
                     rowMinHeight = getRowHeight(row);
                 cell.init(super.getCellRenderer(row, col), rowMinHeight);
             }
-            
+
             cell.switchState();
             setRowHeight(row, cell.getHeight());
-            
-            if(!cell.isMaximized()) {
+
+            if (!cell.isMaximized()) {
                 cancelCellEditing();
                 //Back to simple editor.
                 editCellAt(row, 2);
             }
-            
+
             invalidate();
             repaint();
         }
     }
-    
+
     class UserDataCellRenderer extends DefaultTableCellRenderer {
         Component comp;
+
         UserDataCellRenderer(Component comp) {
             this.comp = comp;
             Dimension d = comp.getPreferredSize();
@@ -387,7 +387,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
                 comp.setPreferredSize(new Dimension((int) d.getWidth(), 200));
             }
         }
-        
+
         @Override
         public Component getTableCellRendererComponent(
                 JTable table,
@@ -398,13 +398,13 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
                 int column) {
             return comp;
         }
-        
+
         public Component getComponent() {
             return comp;
         }
-        
+
     }
-    
+
     class UserDataCell {
         TableCellRenderer minRenderer;
         UserDataCellRenderer maxRenderer;
@@ -412,12 +412,13 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
         boolean minimized = true;
         boolean init = false;
         Object userData;
+
         UserDataCell(Object userData, Component max) {
             this.userData = userData;
             this.maxRenderer = new UserDataCellRenderer(max);
-            
+
         }
-        
+
         @Override
         public String toString() {
             if (userData == null) return null;
@@ -425,55 +426,57 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
                 String name =
                         Utils.getArrayClassName(userData.getClass().getName());
                 int length = Array.getLength(userData);
-                return name + "[" + length +"]";
+                return name + "[" + length + "]";
             }
-            
+
             if (userData instanceof CompositeData ||
                     userData instanceof TabularData)
                 return userData.getClass().getName();
-            
+
             return userData.toString();
         }
-        
+
         boolean isInited() {
             return init;
         }
-        
+
         void init(TableCellRenderer minRenderer, int minHeight) {
             this.minRenderer = minRenderer;
             this.minHeight = minHeight;
             init = true;
         }
-        
+
         void switchState() {
             minimized = !minimized;
         }
+
         boolean isMaximized() {
             return !minimized;
         }
+
         void minimize() {
             minimized = true;
         }
-        
+
         void maximize() {
             minimized = false;
         }
-        
+
         int getHeight() {
             if (minimized) return minHeight;
             else
                 return (int) maxRenderer.getComponent().
                         getPreferredSize().getHeight();
         }
-        
+
         TableCellRenderer getRenderer() {
             if (minimized) return minRenderer;
             else return maxRenderer;
         }
     }
-    
+
     class NotifMouseListener extends MouseAdapter {
-        
+
         @Override
         public void mousePressed(MouseEvent e) {
             if (e.getButton() == MouseEvent.BUTTON1) {
@@ -482,13 +485,13 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
                     int col = XMBeanNotifications.this.getSelectedColumn();
                     if (col != 2) return;
                     if (col == -1 || row == -1) return;
-                    
+
                     XMBeanNotifications.this.updateUserDataCell(row, col);
                 }
             }
         }
     }
-    
+
     class UserDataCellEditor extends XTextFieldEditor {
         // implements javax.swing.table.TableCellEditor
         @Override
@@ -522,6 +525,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
                     row,
                     column);
         }
+
         @Override
         public boolean stopCellEditing() {
             int editingRow = getEditingRow();
@@ -539,9 +543,9 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
             return super.stopCellEditing();
         }
     }
-    
+
     class XMBeanNotificationsListener implements NotificationListener {
-        
+
         private String[] columnNames;
         private XMBean xmbean;
         private DefaultMutableTreeNode node;
@@ -549,7 +553,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
         private XMBeanNotifications notifications;
         private volatile boolean unregistered;
         private ArrayList<Object[]> data = new ArrayList<Object[]>();
-        
+
         public XMBeanNotificationsListener(
                 XMBeanNotifications notifications,
                 XMBean xmbean,
@@ -561,20 +565,20 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
             this.columnNames = columnNames;
             register(node);
         }
-        
+
         public synchronized List<Object[]> getData() {
             return data;
         }
-        
+
         public synchronized void clear() {
             data.clear();
             received = 0;
         }
-        
+
         public synchronized boolean isRegistered() {
             return !unregistered;
         }
-        
+
         public synchronized void unregister() {
             try {
                 xmbean.getMBeanServerConnection().removeNotificationListener(
@@ -587,11 +591,11 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
             }
             unregistered = true;
         }
-        
+
         public synchronized long getReceivedNotifications() {
             return received;
         }
-        
+
         public synchronized void register(DefaultMutableTreeNode node) {
             clear();
             this.node = node;
@@ -606,7 +610,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
                 }
             }
         }
-        
+
         public synchronized void handleNotification(
                 final Notification n, Object hb) {
             EventQueue.invokeLater(new Runnable() {
@@ -616,7 +620,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
                             if (unregistered) return;
                             Date receivedDate = new Date(n.getTimeStamp());
                             String time = timeFormater.format(receivedDate);
-                            
+
                             Object userData = n.getUserData();
                             Component comp = null;
                             UserDataCell cell = null;
@@ -624,19 +628,19 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
                                 XDataViewer.registerForMouseEvent(comp, mouseListener);
                                 cell = new UserDataCell(userData, comp);
                             }
-                            
+
                             Object[] rowData = {
-                                time,
-                                n.getType(),
-                                (cell == null ? userData : cell),
-                                n.getSequenceNumber(),
-                                n.getMessage(),
-                                n,
-                                n.getSource()
+                                    time,
+                                    n.getType(),
+                                    (cell == null ? userData : cell),
+                                    n.getSequenceNumber(),
+                                    n.getMessage(),
+                                    n,
+                                    n.getSource()
                             };
                             received++;
                             data.add(0, rowData);
-                            
+
                             notifications.fireNotificationReceived(
                                     XMBeanNotificationsListener.this,
                                     xmbean, node, rowData, received);

@@ -23,9 +23,9 @@ import static java.lang.management.ManagementFactory.GARBAGE_COLLECTOR_MXBEAN_DO
 public class MemoryPoolProxy {
     private String poolName;
     private ProxyClient client;
-    private ObjectName  objName;
+    private ObjectName objName;
     private MemoryPoolMXBean pool;
-    private Map<ObjectName,Long> gcMBeans;
+    private Map<ObjectName, Long> gcMBeans;
     private GcInfo lastGcInfo;
 
     public MemoryPoolProxy(ProxyClient client, ObjectName poolName) throws java.io.IOException {
@@ -33,22 +33,22 @@ public class MemoryPoolProxy {
         this.objName = objName;
         this.pool = client.getMXBean(poolName, MemoryPoolMXBean.class);
         this.poolName = this.pool.getName();
-        this.gcMBeans = new HashMap<ObjectName,Long>();
+        this.gcMBeans = new HashMap<ObjectName, Long>();
         this.lastGcInfo = null;
 
         String[] mgrNames = pool.getMemoryManagerNames();
         for (String name : mgrNames) {
             try {
                 ObjectName mbeanName = new ObjectName(GARBAGE_COLLECTOR_MXBEAN_DOMAIN_TYPE +
-                                                      ",name=" + name);
+                        ",name=" + name);
                 if (client.isRegistered(mbeanName)) {
                     gcMBeans.put(mbeanName, new Long(0));
                 }
             } catch (Exception e) {
                 assert false;
-            } 
-   
-        } 
+            }
+
+        }
     }
 
     public boolean isCollectedMemoryPool() {
@@ -60,12 +60,12 @@ public class MemoryPoolProxy {
     }
 
     public MemoryPoolStat getStat() throws java.io.IOException {
-        long usageThreshold = (pool.isUsageThresholdSupported() 
-                                  ? pool.getUsageThreshold() 
-                                  : -1);
-        long collectThreshold = (pool.isCollectionUsageThresholdSupported() 
-                                  ? pool.getCollectionUsageThreshold() 
-                                  : -1);
+        long usageThreshold = (pool.isUsageThresholdSupported()
+                ? pool.getUsageThreshold()
+                : -1);
+        long collectThreshold = (pool.isCollectionUsageThresholdSupported()
+                ? pool.getCollectionUsageThreshold()
+                : -1);
         long lastGcStartTime = 0;
         long lastGcEndTime = 0;
         MemoryUsage beforeGcUsage = null;
@@ -79,11 +79,11 @@ public class MemoryPoolProxy {
             afterGcUsage = lastGcInfo.getMemoryUsageAfterGc().get(poolName);
         }
 
-        Set<Entry<ObjectName,Long>> set = gcMBeans.entrySet();
-        for (Entry<ObjectName,Long> e : set) {
-            GarbageCollectorMXBean gc = 
-                client.getMXBean(e.getKey(),
-                                 GarbageCollectorMXBean.class);
+        Set<Entry<ObjectName, Long>> set = gcMBeans.entrySet();
+        for (Entry<ObjectName, Long> e : set) {
+            GarbageCollectorMXBean gc =
+                    client.getMXBean(e.getKey(),
+                            GarbageCollectorMXBean.class);
             Long gcCount = e.getValue();
             Long newCount = gc.getCollectionCount();
             if (newCount > gcCount) {
@@ -95,21 +95,21 @@ public class MemoryPoolProxy {
                     lastGcEndTime = lastGcInfo.getEndTime();
                     beforeGcUsage = lastGcInfo.getMemoryUsageBeforeGc().get(poolName);
                     afterGcUsage = lastGcInfo.getMemoryUsageAfterGc().get(poolName);
-                    assert(beforeGcUsage != null);
-                    assert(afterGcUsage != null);
+                    assert (beforeGcUsage != null);
+                    assert (afterGcUsage != null);
                 }
             }
         }
 
-        MemoryUsage usage = pool.getUsage(); 
+        MemoryUsage usage = pool.getUsage();
         return new MemoryPoolStat(poolName,
-                                  usageThreshold, 
-                                  usage, 
-                                  gcId, 
-                                  lastGcStartTime, 
-                                  lastGcEndTime, 
-                                  collectThreshold, 
-                                  beforeGcUsage, 
-                                  afterGcUsage);
+                usageThreshold,
+                usage,
+                gcId,
+                lastGcStartTime,
+                lastGcEndTime,
+                collectThreshold,
+                beforeGcUsage,
+                afterGcUsage);
     }
 }

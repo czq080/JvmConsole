@@ -26,49 +26,32 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 public class Utils {
-    
-    private Utils() {
-    }
-    
-    private static Set<Integer> tableNavigationKeys =
-            new HashSet<Integer>(Arrays.asList(new Integer[] {
-        KeyEvent.VK_TAB, KeyEvent.VK_ENTER,
-        KeyEvent.VK_HOME, KeyEvent.VK_END,
-        KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT,
-        KeyEvent.VK_UP, KeyEvent.VK_DOWN,
-        KeyEvent.VK_PAGE_UP, KeyEvent.VK_PAGE_DOWN}));
-    
+
     private static final Set<Class<?>> primitiveWrappers =
-            new HashSet<Class<?>>(Arrays.asList(new Class<?>[] {
-        Byte.class, Short.class, Integer.class, Long.class,
-        Float.class, Double.class, Character.class, Boolean.class}));
-    
+            new HashSet<Class<?>>(Arrays.asList(Byte.class, Short.class, Integer.class, Long.class,
+                    Float.class, Double.class, Character.class, Boolean.class));
     private static final Set<Class<?>> primitives = new HashSet<Class<?>>();
-    
     private static final Map<String, Class<?>> primitiveMap =
             new HashMap<String, Class<?>>();
-    
     private static final Map<String, Class<?>> primitiveToWrapper =
             new HashMap<String, Class<?>>();
-    
     private static final Set<String> editableTypes = new HashSet<String>();
-    
     private static final Set<Class<?>> extraEditableClasses =
-            new HashSet<Class<?>>(Arrays.asList(new Class<?>[] {
-        BigDecimal.class, BigInteger.class, Number.class,
-        String.class, ObjectName.class}));
-    
+            new HashSet<Class<?>>(Arrays.asList(BigDecimal.class, BigInteger.class, Number.class,
+                    String.class, ObjectName.class));
     private static final Set<String> numericalTypes = new HashSet<String>();
-    
     private static final Set<String> extraNumericalTypes =
-            new HashSet<String>(Arrays.asList(new String[] {
-        BigDecimal.class.getName(), BigInteger.class.getName(),
-        Number.class.getName()}));
-    
+            new HashSet<String>(Arrays.asList(BigDecimal.class.getName(), BigInteger.class.getName(),
+                    Number.class.getName()));
     private static final Set<String> booleanTypes =
-            new HashSet<String>(Arrays.asList(new String[] {
-        Boolean.TYPE.getName(), Boolean.class.getName()}));
-    
+            new HashSet<String>(Arrays.asList(Boolean.TYPE.getName(), Boolean.class.getName()));
+    private static Set<Integer> tableNavigationKeys =
+            new HashSet<Integer>(Arrays.asList(KeyEvent.VK_TAB, KeyEvent.VK_ENTER,
+                    KeyEvent.VK_HOME, KeyEvent.VK_END,
+                    KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT,
+                    KeyEvent.VK_UP, KeyEvent.VK_DOWN,
+                    KeyEvent.VK_PAGE_UP, KeyEvent.VK_PAGE_DOWN));
+
     static {
         // compute primitives/primitiveMap/primitiveToWrapper
         for (Class<?> c : primitiveWrappers) {
@@ -106,19 +89,22 @@ public class Utils {
             }
         }
     }
-    
+
+    private Utils() {
+    }
+
     /**
      * This method returns the class matching the name className.
      * It's used to cater for the primitive types.
      */
     public static Class<?> getClass(String className)
-    throws ClassNotFoundException {
+            throws ClassNotFoundException {
         Class<?> c;
         if ((c = primitiveMap.get(className)) != null)
             return c;
         return Class.forName(className);
     }
-    
+
     /**
      * Check if the given collection is a uniform collection of the given type.
      */
@@ -139,7 +125,7 @@ public class Utils {
         }
         return true;
     }
-    
+
     /**
      * Check if the given element denotes a supported array-friendly data
      * structure, i.e. a data structure jconsole can render as an array.
@@ -158,7 +144,7 @@ public class Utils {
                 // - Collections of other Java types are handled as arrays
                 //
                 return !isUniformCollection(c, CompositeData.class) &&
-                       !isUniformCollection(c, TabularData.class);
+                        !isUniformCollection(c, TabularData.class);
             }
         }
         if (elem instanceof Map) {
@@ -166,12 +152,12 @@ public class Utils {
         }
         return false;
     }
-    
+
     /**
      * Check if the given element is an array.
-     *
+     * <p>
      * Multidimensional arrays are not supported.
-     *
+     * <p>
      * Non-empty 1-dimensional arrays of CompositeData
      * and TabularData are not handled as arrays but as
      * tabular data.
@@ -184,14 +170,11 @@ public class Utils {
         if (ct.isArray()) {
             return false;
         }
-        if (Array.getLength(elem) > 0 &&
-                (CompositeData.class.isAssignableFrom(ct) ||
-                TabularData.class.isAssignableFrom(ct))) {
-            return false;
-        }
-        return true;
+        return Array.getLength(elem) <= 0 ||
+                (!CompositeData.class.isAssignableFrom(ct) &&
+                        !TabularData.class.isAssignableFrom(ct));
     }
-    
+
     /**
      * This method provides a readable classname if it's an array,
      * i.e. either the classname of the component type for arrays
@@ -202,7 +185,7 @@ public class Utils {
         String className = null;
         if (name.startsWith("[")) {
             int index = name.lastIndexOf("[");
-            className = name.substring(index, name.length());
+            className = name.substring(index);
             if (className.startsWith("[L")) {
                 className = className.substring(2, className.length() - 1);
             } else {
@@ -218,7 +201,7 @@ public class Utils {
         }
         return className;
     }
-    
+
     /**
      * This methods provides a readable classname. If the supplied name
      * parameter denotes an array this method returns either the classname
@@ -237,7 +220,7 @@ public class Utils {
         }
         return brackets.toString();
     }
-    
+
     /**
      * This method tells whether the type is editable
      * (means can be created with a String or not)
@@ -245,7 +228,7 @@ public class Utils {
     public static boolean isEditableType(String type) {
         return editableTypes.contains(type);
     }
-    
+
     /**
      * This method inserts a default value for the standard java types,
      * else it inserts the text name of the expected class type.
@@ -262,17 +245,17 @@ public class Utils {
         type = getReadableClassName(type);
         int i = type.lastIndexOf('.');
         if (i > 0) {
-            return type.substring(i + 1, type.length());
+            return type.substring(i + 1);
         } else {
             return type;
         }
     }
-    
+
     /**
      * Try to create a Java object using a one-string-param constructor.
      */
     public static Object newStringConstructor(String type, String param)
-    throws Exception {
+            throws Exception {
         Constructor c = Utils.getClass(type).getConstructor(String.class);
         try {
             return c.newInstance(param);
@@ -285,12 +268,12 @@ public class Utils {
             }
         }
     }
-    
+
     /**
      * Try to convert a string value into a numerical value.
      */
     private static Number createNumberFromStringValue(String value)
-    throws NumberFormatException {
+            throws NumberFormatException {
         final String suffix = value.substring(value.length() - 1);
         if ("L".equalsIgnoreCase(suffix)) {
             return Long.valueOf(value.substring(0, value.length() - 1));
@@ -319,7 +302,7 @@ public class Utils {
         throw new NumberFormatException("Cannot convert string value '" +
                 value + "' into a numerical value");
     }
-    
+
     /**
      * This method attempts to create an object of the given "type"
      * using the "value" parameter.
@@ -327,21 +310,21 @@ public class Utils {
      * will return an Integer object initialized to 10.
      */
     public static Object createObjectFromString(String type, String value)
-    throws Exception {
+            throws Exception {
         Object result;
         if (primitiveToWrapper.containsKey(type)) {
             if (type.equals(Character.TYPE.getName())) {
                 result = new Character(value.charAt(0));
             } else {
                 result = newStringConstructor(
-                        ((Class<?>) primitiveToWrapper.get(type)).getName(),
+                        primitiveToWrapper.get(type).getName(),
                         value);
             }
         } else if (type.equals(Character.class.getName())) {
             result = new Character(value.charAt(0));
         } else if (Number.class.isAssignableFrom(Utils.getClass(type))) {
             result = createNumberFromStringValue(value);
-        } else if (value == null || value.toString().equals("null")) {
+        } else if (value == null || value.equals("null")) {
             // hack for null value
             result = null;
         } else {
@@ -351,14 +334,14 @@ public class Utils {
         }
         return result;
     }
-    
+
     /**
      * This method is responsible for converting the inputs given by the user
      * into a useful object array for passing into a parameter array.
      */
     public static Object[] getParameters(XTextField[] inputs, String[] params)
-    throws Exception {
-        Object result[] = new Object[inputs.length];
+            throws Exception {
+        Object[] result = new Object[inputs.length];
         Object userInput;
         for (int i = 0; i < inputs.length; i++) {
             userInput = inputs[i].getValue();
@@ -367,13 +350,13 @@ public class Utils {
             if (userInput instanceof XObject) {
                 result[i] = ((XObject) userInput).getObject();
             } else {
-                result[i] = createObjectFromString(params[i].toString(),
+                result[i] = createObjectFromString(params[i],
                         (String) userInput);
             }
         }
         return result;
     }
-    
+
     /**
      * If the exception is wrapped, unwrap it.
      */
@@ -389,7 +372,7 @@ public class Utils {
         }
         return e;
     }
-    
+
     @SuppressWarnings("serial")
     public static class ReadOnlyTableCellEditor
             extends DefaultCellEditor {
@@ -399,23 +382,26 @@ public class Utils {
             tf.addKeyListener(new CopyKeyAdapter());
         }
     }
-    
+
     public static class EditFocusAdapter extends FocusAdapter {
         private CellEditor editor;
+
         public EditFocusAdapter(CellEditor editor) {
             this.editor = editor;
         }
+
         @Override
         public void focusLost(FocusEvent e) {
             editor.stopCellEditing();
         }
-    };
-    
+    }
+
     public static class CopyKeyAdapter extends KeyAdapter {
         private static final String defaultEditorKitCopyActionName =
                 DefaultEditorKit.copyAction;
         private static final String transferHandlerCopyActionName =
                 (String) TransferHandler.getCopyAction().getValue(Action.NAME);
+
         @Override
         public void keyPressed(KeyEvent e) {
             // Accept "copy" key strokes
@@ -435,6 +421,7 @@ public class Utils {
                 e.consume();
             }
         }
+
         @Override
         public void keyTyped(KeyEvent e) {
             e.consume();

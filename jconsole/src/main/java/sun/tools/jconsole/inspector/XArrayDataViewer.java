@@ -14,13 +14,14 @@ import java.util.Collection;
 import java.util.Map;
 
 class XArrayDataViewer {
-    
-    private XArrayDataViewer() {}
-    
+
+    private XArrayDataViewer() {
+    }
+
     public static boolean isViewableValue(Object value) {
         return Utils.canBeRenderedAsArray(value);
     }
-    
+
     public static Component loadArray(Object value) {
         Component comp = null;
         if (isViewableValue(value)) {
@@ -53,25 +54,25 @@ class XArrayDataViewer {
                     blue < 20 ? blue + 20 : blue - 20);
             String oddRowColorStr =
                     "rgb(" + oddRowColor.getRed() + "," +
-                    oddRowColor.getGreen() + "," +
-                    oddRowColor.getBlue() + ")";
-	    Color foreground = arrayEditor.getForeground();
-	    String textColor = String.format("%06x",
-					     foreground.getRGB() & 0xFFFFFF);
+                            oddRowColor.getGreen() + "," +
+                            oddRowColor.getBlue() + ")";
+            Color foreground = arrayEditor.getForeground();
+            String textColor = String.format("%06x",
+                    foreground.getRGB() & 0xFFFFFF);
             StringBuilder sb = new StringBuilder();
-            sb.append("<html><body text=#"+textColor+"><table width=\"100%\">");
+            sb.append("<html><body text=#" + textColor + "><table width=\"100%\">");
             for (int i = 0; i < arr.length; i++) {
                 if (i % 2 == 0) {
                     sb.append("<tr style=\"background-color: " +
                             evenRowColorStr + "\"><td><pre>" +
                             (arr[i] == null ?
-                                arr[i] : htmlize(arr[i].toString())) +
+                                    arr[i] : htmlize(arr[i].toString())) +
                             "</pre></td></tr>");
                 } else {
                     sb.append("<tr style=\"background-color: " +
                             oddRowColorStr + "\"><td><pre>" +
                             (arr[i] == null ?
-                                arr[i] : htmlize(arr[i].toString())) +
+                                    arr[i] : htmlize(arr[i].toString())) +
                             "</pre></td></tr>");
                 }
             }
@@ -86,7 +87,7 @@ class XArrayDataViewer {
         }
         return comp;
     }
-    
+
     private static String htmlize(String value) {
         return value.replace("&", "&amp;").replace("<", "&lt;");
     }

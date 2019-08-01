@@ -23,89 +23,23 @@ import static sun.tools.jconsole.Utilities.ensureContrast;
 
 @SuppressWarnings("serial")
 public class XMBeanInfo extends JPanel {
-    
+
     private static final Color lightYellow = new Color(255, 255, 128);
-    
+    private static MBeanInfoTableCellRenderer renderer =
+            new MBeanInfoTableCellRenderer();
+    private static TableCellEditor editor =
+            new MBeanInfoTableCellEditor(new JTextField());
     private final int NAME_COLUMN = 0;
     private final int VALUE_COLUMN = 1;
-    
     private final String[] columnNames = {
-        Resources.getText("Name"),
-        Resources.getText("Value")
+            Resources.getText("Name"),
+            Resources.getText("Value")
     };
-    
     private JTable infoTable = new JTable();
     private JTable descTable = new JTable();
     private JPanel infoBorderPanel = new JPanel(new BorderLayout());
     private JPanel descBorderPanel = new JPanel(new BorderLayout());
-    
-    private static class ReadOnlyDefaultTableModel extends DefaultTableModel {
-        @Override
-        public void setValueAt(Object value, int row, int col) {
-        }
-    }
-    
-    private static class TableRowDivider {
-        
-        private String tableRowDividerText;
-        
-        public TableRowDivider(String tableRowDividerText) {
-            this.tableRowDividerText = tableRowDividerText;
-        }
-        
-        @Override
-        public String toString() {
-            return tableRowDividerText;
-        }
-    }
-    
-    private static MBeanInfoTableCellRenderer renderer =
-            new MBeanInfoTableCellRenderer();
-    
-    private static class MBeanInfoTableCellRenderer
-            extends DefaultTableCellRenderer {
-        @Override
-        public Component getTableCellRendererComponent(
-                JTable table, Object value, boolean isSelected,
-                boolean hasFocus, int row, int column) {
-            Component comp = super.getTableCellRendererComponent(
-                    table, value, isSelected, hasFocus, row, column);
-            if (value instanceof TableRowDivider) {
-                JLabel label = new JLabel(value.toString());
-                label.setBackground(ensureContrast(lightYellow,
-                        label.getForeground()));
-                label.setOpaque(true);
-                return label;
-            }
-            return comp;
-        }
-    }
-    
-    private static TableCellEditor editor =
-            new MBeanInfoTableCellEditor(new JTextField());
-    
-    private static class MBeanInfoTableCellEditor
-            extends Utils.ReadOnlyTableCellEditor {
-        public MBeanInfoTableCellEditor(JTextField tf) {
-            super(tf);
-        }
-        @Override
-        public Component getTableCellEditorComponent(
-                JTable table, Object value, boolean isSelected,
-                int row, int column) {
-            Component comp = super.getTableCellEditorComponent(
-                    table, value, isSelected, row, column);
-            if (value instanceof TableRowDivider) {
-                JLabel label = new JLabel(value.toString());
-                label.setBackground(ensureContrast(lightYellow,
-                        label.getForeground()));
-                label.setOpaque(true);
-                return label;
-            }
-            return comp;
-        }
-    }
-    
+
     public XMBeanInfo() {
         // Use the grid layout to display the two tables
         //
@@ -153,7 +87,7 @@ public class XMBeanInfo extends JPanel {
         add(infoBorderPanel);
         add(descBorderPanel);
     }
-    
+
     // Call on EDT
     public void emptyInfoTable() {
         DefaultTableModel tableModel = (DefaultTableModel) infoTable.getModel();
@@ -161,7 +95,7 @@ public class XMBeanInfo extends JPanel {
             tableModel.removeRow(0);
         }
     }
-    
+
     // Call on EDT
     public void emptyDescTable() {
         DefaultTableModel tableModel = (DefaultTableModel) descTable.getModel();
@@ -169,12 +103,12 @@ public class XMBeanInfo extends JPanel {
             tableModel.removeRow(0);
         }
     }
-    
+
     // Call on EDT
     private void addDescriptor(Descriptor desc, String text) {
         if (desc != null && desc.getFieldNames().length > 0) {
             DefaultTableModel tableModel = (DefaultTableModel) descTable.getModel();
-            Object rowData[] = new Object[2];
+            Object[] rowData = new Object[2];
             rowData[0] = new TableRowDivider(text);
             rowData[1] = new TableRowDivider("");
             tableModel.addRow(rowData);
@@ -207,7 +141,7 @@ public class XMBeanInfo extends JPanel {
             tableModel.newDataAvailable(new TableModelEvent(tableModel));
         }
     }
-    
+
     // Call on EDT
     public void addMBeanInfo(XMBean mbean, MBeanInfo mbeanInfo) {
         emptyInfoTable();
@@ -216,7 +150,7 @@ public class XMBeanInfo extends JPanel {
                 Resources.getText("MBeanInfo"));
         String text = Resources.getText("Info") + ":";
         DefaultTableModel tableModel = (DefaultTableModel) infoTable.getModel();
-        Object rowData[] = new Object[2];
+        Object[] rowData = new Object[2];
         rowData[0] = new TableRowDivider(text);
         rowData[1] = new TableRowDivider("");
         tableModel.addRow(rowData);
@@ -248,7 +182,7 @@ public class XMBeanInfo extends JPanel {
         }
         tableModel.newDataAvailable(new TableModelEvent(tableModel));
     }
-    
+
     // Call on EDT
     public void addMBeanAttributeInfo(MBeanAttributeInfo mbai) {
         emptyInfoTable();
@@ -257,7 +191,7 @@ public class XMBeanInfo extends JPanel {
                 Resources.getText("MBeanAttributeInfo"));
         String text = Resources.getText("Attribute") + ":";
         DefaultTableModel tableModel = (DefaultTableModel) infoTable.getModel();
-        Object rowData[] = new Object[2];
+        Object[] rowData = new Object[2];
         rowData[0] = new TableRowDivider(text);
         rowData[1] = new TableRowDivider("");
         tableModel.addRow(rowData);
@@ -282,7 +216,7 @@ public class XMBeanInfo extends JPanel {
         addDescriptor(mbai.getDescriptor(), text);
         tableModel.newDataAvailable(new TableModelEvent(tableModel));
     }
-    
+
     // Call on EDT
     public void addMBeanOperationInfo(MBeanOperationInfo mboi) {
         emptyInfoTable();
@@ -291,7 +225,7 @@ public class XMBeanInfo extends JPanel {
                 Resources.getText("MBeanOperationInfo"));
         String text = Resources.getText("Operation") + ":";
         DefaultTableModel tableModel = (DefaultTableModel) infoTable.getModel();
-        Object rowData[] = new Object[2];
+        Object[] rowData = new Object[2];
         rowData[0] = new TableRowDivider(text);
         rowData[1] = new TableRowDivider("");
         tableModel.addRow(rowData);
@@ -330,7 +264,7 @@ public class XMBeanInfo extends JPanel {
         }
         tableModel.newDataAvailable(new TableModelEvent(tableModel));
     }
-    
+
     // Call on EDT
     public void addMBeanNotificationInfo(MBeanNotificationInfo mbni) {
         emptyInfoTable();
@@ -339,7 +273,7 @@ public class XMBeanInfo extends JPanel {
                 Resources.getText("MBeanNotificationInfo"));
         String text = Resources.getText("Notification") + ":";
         DefaultTableModel tableModel = (DefaultTableModel) infoTable.getModel();
-        Object rowData[] = new Object[2];
+        Object[] rowData = new Object[2];
         rowData[0] = new TableRowDivider(text);
         rowData[1] = new TableRowDivider("");
         tableModel.addRow(rowData);
@@ -355,11 +289,11 @@ public class XMBeanInfo extends JPanel {
         addDescriptor(mbni.getDescriptor(), text);
         tableModel.newDataAvailable(new TableModelEvent(tableModel));
     }
-    
+
     // Call on EDT
     private void addMBeanConstructorInfo(MBeanConstructorInfo mbci, String text) {
         DefaultTableModel tableModel = (DefaultTableModel) infoTable.getModel();
-        Object rowData[] = new Object[2];
+        Object[] rowData = new Object[2];
         rowData[0] = new TableRowDivider(text);
         rowData[1] = new TableRowDivider("");
         tableModel.addRow(rowData);
@@ -372,11 +306,11 @@ public class XMBeanInfo extends JPanel {
         addDescriptor(mbci.getDescriptor(), text);
         tableModel.newDataAvailable(new TableModelEvent(tableModel));
     }
-    
+
     // Call on EDT
     private void addMBeanParameterInfo(MBeanParameterInfo mbpi, String text) {
         DefaultTableModel tableModel = (DefaultTableModel) infoTable.getModel();
-        Object rowData[] = new Object[2];
+        Object[] rowData = new Object[2];
         rowData[0] = new TableRowDivider(text);
         rowData[1] = new TableRowDivider("");
         tableModel.addRow(rowData);
@@ -391,5 +325,67 @@ public class XMBeanInfo extends JPanel {
         tableModel.addRow(rowData);
         addDescriptor(mbpi.getDescriptor(), text);
         tableModel.newDataAvailable(new TableModelEvent(tableModel));
+    }
+
+    private static class ReadOnlyDefaultTableModel extends DefaultTableModel {
+        @Override
+        public void setValueAt(Object value, int row, int col) {
+        }
+    }
+
+    private static class TableRowDivider {
+
+        private String tableRowDividerText;
+
+        public TableRowDivider(String tableRowDividerText) {
+            this.tableRowDividerText = tableRowDividerText;
+        }
+
+        @Override
+        public String toString() {
+            return tableRowDividerText;
+        }
+    }
+
+    private static class MBeanInfoTableCellRenderer
+            extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(
+                JTable table, Object value, boolean isSelected,
+                boolean hasFocus, int row, int column) {
+            Component comp = super.getTableCellRendererComponent(
+                    table, value, isSelected, hasFocus, row, column);
+            if (value instanceof TableRowDivider) {
+                JLabel label = new JLabel(value.toString());
+                label.setBackground(ensureContrast(lightYellow,
+                        label.getForeground()));
+                label.setOpaque(true);
+                return label;
+            }
+            return comp;
+        }
+    }
+
+    private static class MBeanInfoTableCellEditor
+            extends Utils.ReadOnlyTableCellEditor {
+        public MBeanInfoTableCellEditor(JTextField tf) {
+            super(tf);
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(
+                JTable table, Object value, boolean isSelected,
+                int row, int column) {
+            Component comp = super.getTableCellEditorComponent(
+                    table, value, isSelected, row, column);
+            if (value instanceof TableRowDivider) {
+                JLabel label = new JLabel(value.toString());
+                label.setBackground(ensureContrast(lightYellow,
+                        label.getForeground()));
+                label.setOpaque(true);
+                return label;
+            }
+            return comp;
+        }
     }
 }

@@ -18,29 +18,29 @@ public abstract class XTable extends JTable {
     private Color defaultColor, editableColor, droppableColor, errorColor;
     private Font normalFont, boldFont;
 
-    public XTable () {
-	super();
-	TableSorter sorter;
-	setModel(sorter = new TableSorter());
-	sorter.addMouseListenerToHeaderInTable(this);
-	setRowSelectionAllowed(false);
-	setColumnSelectionAllowed(false);
-	setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+    public XTable() {
+        super();
+        TableSorter sorter;
+        setModel(sorter = new TableSorter());
+        sorter.addMouseListenerToHeaderInTable(this);
+        setRowSelectionAllowed(false);
+        setColumnSelectionAllowed(false);
+        setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
     }
 
     Color getDefaultColor() {
-	return defaultColor;
+        return defaultColor;
     }
 
     Color getEditableColor() {
-	return editableColor;
+        return editableColor;
     }
 
     /**
      * This returns the select index as the table was at initialization
      */
     public int getSelectedIndex() {
-	return convertRowToIndex(getSelectedRow());
+        return convertRowToIndex(getSelectedRow());
     }
 
     /*
@@ -54,56 +54,65 @@ public abstract class XTable extends JTable {
             return row;
         }
     }
-	
+
     public void emptyTable() {
-	DefaultTableModel model = (DefaultTableModel)getModel();
-	while (model.getRowCount()>0)
-	    model.removeRow(0);
+        DefaultTableModel model = (DefaultTableModel) getModel();
+        while (model.getRowCount() > 0)
+            model.removeRow(0);
     }
-    
+
     public abstract boolean isTableEditable();
+
     public abstract boolean isColumnEditable(int column);
+
     public abstract boolean isReadable(int row);
+
     public abstract boolean isWritable(int row);
+
     public abstract boolean isCellError(int row, int col);
+
     public abstract boolean isAttributeViewable(int row, int col);
-    public abstract void setTableValue(Object value,int row);
+
+    public abstract void setTableValue(Object value, int row);
+
     public abstract Object getValue(int row);
+
     public abstract String getClassName(int row);
+
     public abstract String getValueName(int row);
 
     public boolean isReadWrite(int row) {
-	return (isReadable(row) && isWritable(row));
+        return (isReadable(row) && isWritable(row));
     }
-    
+
     //JTable re-implementation 
 
     //attribute can be editable even if unavailable
     public boolean isCellEditable(int row, int col) {
-	return ((isTableEditable() && isColumnEditable(col)
-		 &&  isWritable(row) 
-		 && Utils.isEditableType(getClassName(row))));
+        return ((isTableEditable() && isColumnEditable(col)
+                && isWritable(row)
+                && Utils.isEditableType(getClassName(row))));
     }
 
     //attribute can be droppable even if unavailable
     public boolean isCellDroppable(int row, int col) {
-	return (isTableEditable() && isColumnEditable(col) 
-		&& isWritable(row));
+        return (isTableEditable() && isColumnEditable(col)
+                && isWritable(row));
     }
 
     //returns null, means no tool tip
     public String getToolTip(int row, int column) {
-	return null;
+        return null;
     }
-	
+
     /**
      * This method sets read write rows to be blue, and other rows to be their
      * default rendered colour.
      */
     public TableCellRenderer getCellRenderer(int row, int column) {
         DefaultTableCellRenderer tcr =
-            (DefaultTableCellRenderer) super.getCellRenderer(row,column);
-        tcr.setToolTipText(getToolTip(row,column));
+                (DefaultTableCellRenderer) super.getCellRenderer(row, column);
+        tcr.setToolTipText(getToolTip(row, column));
         if (defaultColor == null) {
             defaultColor = tcr.getForeground();
             editableColor = Color.blue;
@@ -118,7 +127,7 @@ public abstract class XTable extends JTable {
             tcr.setForeground(defaultColor);
             return tcr;
         }
-        if (isCellError(row,column)) {
+        if (isCellError(row, column)) {
             tcr.setForeground(errorColor);
         } else if (isCellEditable(row, column)) {
             tcr.setForeground(editableColor);
@@ -129,20 +138,20 @@ public abstract class XTable extends JTable {
     }
 
     public Component prepareRenderer(TableCellRenderer renderer,
-				     int row, int column) {
-	Component comp = super.prepareRenderer(renderer, row, column);
-	
-	if (normalFont == null) {
-	    normalFont = comp.getFont();
-	    boldFont = normalFont.deriveFont(Font.BOLD);
-	}
-	
-	if (column == VALUE_COLUMN && isAttributeViewable(row, VALUE_COLUMN)) {
-	    comp.setFont(boldFont);
-	} else {
-	    comp.setFont(normalFont);
-	}
-	
-	return comp;
+                                     int row, int column) {
+        Component comp = super.prepareRenderer(renderer, row, column);
+
+        if (normalFont == null) {
+            normalFont = comp.getFont();
+            boldFont = normalFont.deriveFont(Font.BOLD);
+        }
+
+        if (column == VALUE_COLUMN && isAttributeViewable(row, VALUE_COLUMN)) {
+            comp.setFont(boldFont);
+        } else {
+            comp.setFont(normalFont);
+        }
+
+        return comp;
     }
 }

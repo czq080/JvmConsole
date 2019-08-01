@@ -18,13 +18,13 @@ import java.io.IOException;
 public class XMBean {
     private final MBeansTab mbeansTab;
     private final ObjectName objectName;
+    private final Object broadcasterLock = new Object();
+    private final Object mbeanInfoLock = new Object();
     private Icon icon;
     private String text;
     private Boolean broadcaster;
-    private final Object broadcasterLock = new Object();
     private MBeanInfo mbeanInfo;
-    private final Object mbeanInfoLock = new Object();
-    
+
     public XMBean(ObjectName objectName, MBeansTab mbeansTab) {
         this.mbeansTab = mbeansTab;
         this.objectName = objectName;
@@ -37,15 +37,15 @@ public class XMBean {
             icon = IconManager.MBEAN;
         }
     }
-    
+
     MBeanServerConnection getMBeanServerConnection() {
         return mbeansTab.getMBeanServerConnection();
     }
-    
+
     SnapshotMBeanServerConnection getSnapshotMBeanServerConnection() {
         return mbeansTab.getSnapshotMBeanServerConnection();
     }
-    
+
     public Boolean isBroadcaster() {
         synchronized (broadcasterLock) {
             if (broadcaster == null) {
@@ -65,55 +65,55 @@ public class XMBean {
             return broadcaster;
         }
     }
-    
+
     public Object invoke(String operationName) throws Exception {
         Object result = getMBeanServerConnection().invoke(
                 getObjectName(), operationName, new Object[0], new String[0]);
         return result;
     }
-    
-    public Object invoke(String operationName, Object params[], String sig[])
-    throws Exception {
+
+    public Object invoke(String operationName, Object[] params, String[] sig)
+            throws Exception {
         Object result = getMBeanServerConnection().invoke(
                 getObjectName(), operationName, params, sig);
         return result;
     }
-    
+
     public void setAttribute(Attribute attribute)
-    throws AttributeNotFoundException, InstanceNotFoundException,
+            throws AttributeNotFoundException, InstanceNotFoundException,
             InvalidAttributeValueException, MBeanException,
             ReflectionException, IOException {
         getMBeanServerConnection().setAttribute(getObjectName(), attribute);
     }
-    
+
     public Object getAttribute(String attributeName)
-    throws AttributeNotFoundException, InstanceNotFoundException,
+            throws AttributeNotFoundException, InstanceNotFoundException,
             MBeanException, ReflectionException, IOException {
         return getSnapshotMBeanServerConnection().getAttribute(
                 getObjectName(), attributeName);
     }
-    
-    public AttributeList getAttributes(String attributeNames[])
-    throws AttributeNotFoundException, InstanceNotFoundException,
+
+    public AttributeList getAttributes(String[] attributeNames)
+            throws AttributeNotFoundException, InstanceNotFoundException,
             MBeanException, ReflectionException, IOException {
         return getSnapshotMBeanServerConnection().getAttributes(
                 getObjectName(), attributeNames);
     }
-    
-    public AttributeList getAttributes(MBeanAttributeInfo attributeNames[])
-    throws AttributeNotFoundException, InstanceNotFoundException,
+
+    public AttributeList getAttributes(MBeanAttributeInfo[] attributeNames)
+            throws AttributeNotFoundException, InstanceNotFoundException,
             MBeanException, ReflectionException, IOException {
-        String attributeString[] = new String[attributeNames.length];
+        String[] attributeString = new String[attributeNames.length];
         for (int i = 0; i < attributeNames.length; i++) {
             attributeString[i] = attributeNames[i].getName();
         }
         return getAttributes(attributeString);
     }
-    
+
     public ObjectName getObjectName() {
         return objectName;
     }
-    
+
     public MBeanInfo getMBeanInfo() throws InstanceNotFoundException,
             IntrospectionException, ReflectionException, IOException {
         synchronized (mbeanInfoLock) {
@@ -123,7 +123,7 @@ public class XMBean {
             return mbeanInfo;
         }
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null) return false;
@@ -137,23 +137,23 @@ public class XMBean {
     public int hashCode() {
         return (objectName == null ? 0 : objectName.hashCode());
     }
-    
+
     public String getText() {
         return text;
     }
-    
+
     public void setText(String text) {
         this.text = text;
     }
-    
+
     public Icon getIcon() {
         return icon;
     }
-    
+
     public void setIcon(Icon icon) {
         this.icon = icon;
     }
-    
+
     @Override
     public String toString() {
         return getText();

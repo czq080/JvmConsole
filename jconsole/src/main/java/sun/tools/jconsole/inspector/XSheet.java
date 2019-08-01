@@ -28,48 +28,48 @@ import static sun.tools.jconsole.Resources.getText;
 @SuppressWarnings("serial")
 public class XSheet extends JPanel
         implements ActionListener, NotificationListener {
-    
+
     private JPanel mainPanel;
     private JPanel southPanel;
-    
+
     // Node being currently displayed
     private volatile DefaultMutableTreeNode currentNode;
-    
+
     // MBean being currently displayed
     private volatile XMBean mbean;
-    
+
     // XMBeanAttributes container
     private XMBeanAttributes mbeanAttributes;
-    
+
     // XMBeanOperations container
     private XMBeanOperations mbeanOperations;
-    
+
     // XMBeanNotifications container
     private XMBeanNotifications mbeanNotifications;
-    
+
     // XMBeanInfo container
     private XMBeanInfo mbeanInfo;
-    
+
     // Refresh JButton (mbean attributes case)
     private JButton refreshButton;
-    
+
     // Subscribe/Unsubscribe/Clear JButton (mbean notifications case)
     private JButton clearButton, subscribeButton, unsubscribeButton;
-    
+
     // Reference to MBeans tab
     private MBeansTab mbeansTab;
-    
+
     public XSheet(MBeansTab mbeansTab) {
         this.mbeansTab = mbeansTab;
         setupScreen();
     }
-    
+
     public void dispose() {
         clear();
         XDataViewer.dispose(mbeansTab);
         mbeanNotifications.dispose();
     }
-    
+
     private void setupScreen() {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createLineBorder(Color.GRAY));
@@ -115,16 +115,16 @@ public class XSheet extends JPanel
         // create XMBeanInfo container
         mbeanInfo = new XMBeanInfo();
     }
-    
+
     private boolean isSelectedNode(DefaultMutableTreeNode n, DefaultMutableTreeNode cn) {
         return (cn == n);
     }
-    
+
     // Call on EDT
     private void showErrorDialog(Object message, String title) {
         new ThreadDialog(this, message, title, JOptionPane.ERROR_MESSAGE).run();
     }
-    
+
     public boolean isMBeanNode(DefaultMutableTreeNode node) {
         Object userObject = node.getUserObject();
         if (userObject instanceof XNodeInfo) {
@@ -133,7 +133,7 @@ public class XSheet extends JPanel
         }
         return false;
     }
-    
+
     // Call on EDT
     public synchronized void displayNode(DefaultMutableTreeNode node) {
         clear();
@@ -174,7 +174,7 @@ public class XSheet extends JPanel
             displayEmptyNode();
         }
     }
-    
+
     // Call on EDT
     private void displayMBeanNode(final DefaultMutableTreeNode node) {
         final XNodeInfo uo = (XNodeInfo) node.getUserObject();
@@ -182,12 +182,13 @@ public class XSheet extends JPanel
             return;
         }
         mbean = (XMBean) uo.getData();
-        SwingWorker<MBeanInfo,Void> sw = new SwingWorker<MBeanInfo,Void>() {
+        SwingWorker<MBeanInfo, Void> sw = new SwingWorker<MBeanInfo, Void>() {
             @Override
             public MBeanInfo doInBackground() throws InstanceNotFoundException,
                     IntrospectionException, ReflectionException, IOException {
                 return mbean.getMBeanInfo();
             }
+
             @Override
             protected void done() {
                 try {
@@ -217,78 +218,79 @@ public class XSheet extends JPanel
         };
         sw.execute();
     }
-    
+
     // Call on EDT
     private void displayMetadataNode(final DefaultMutableTreeNode node) {
         final XNodeInfo uo = (XNodeInfo) node.getUserObject();
         final XMBeanInfo mbi = mbeanInfo;
         switch (uo.getType()) {
             case ATTRIBUTE:
-                SwingWorker<MBeanAttributeInfo,Void> sw =
-                        new SwingWorker<MBeanAttributeInfo,Void>() {
-                    @Override
-                    public MBeanAttributeInfo doInBackground() {
-                        Object attrData = uo.getData();
-                        mbean = (XMBean) ((Object[]) attrData)[0];
-                        MBeanAttributeInfo mbai =
-                                (MBeanAttributeInfo) ((Object[]) attrData)[1];
-                        mbeanAttributes.loadAttributes(mbean, new MBeanInfo(
-                                null, null, new MBeanAttributeInfo[] {mbai},
-                                null, null, null));
-                        return mbai;
-                    }
-                    @Override
-                    protected void done() {
-                        try {
-                            MBeanAttributeInfo mbai = get();
-                            if (!isSelectedNode(node, currentNode)) return;
-                            invalidate();
-                            mainPanel.removeAll();
-                            JPanel attributePanel =
-                                    new JPanel(new BorderLayout());
-                            JPanel attributeBorderPanel =
-                                    new JPanel(new BorderLayout());
-                            attributeBorderPanel.setBorder(
-                                    BorderFactory.createTitledBorder(
-                                    Resources.getText("Attribute value")));
-                            JPanel attributeValuePanel =
-                                    new JPanel(new BorderLayout());
-                            attributeValuePanel.setBorder(
-                                    LineBorder.createGrayLineBorder());
-                            attributeValuePanel.add(mbeanAttributes.getTableHeader(),
-                                    BorderLayout.PAGE_START);
-                            attributeValuePanel.add(mbeanAttributes,
-                                    BorderLayout.CENTER);
-                            attributeBorderPanel.add(attributeValuePanel,
-                                    BorderLayout.CENTER);
-                            JPanel refreshButtonPanel = new JPanel();
-                            refreshButtonPanel.add(refreshButton);
-                            attributeBorderPanel.add(refreshButtonPanel,
-                                    BorderLayout.SOUTH);
-                            refreshButton.setEnabled(true);
-                            attributePanel.add(attributeBorderPanel,
-                                    BorderLayout.NORTH);
-                            mbi.addMBeanAttributeInfo(mbai);
-                            attributePanel.add(mbi, BorderLayout.CENTER);
-                            mainPanel.add(attributePanel,
-                                    BorderLayout.CENTER);
-                            southPanel.setVisible(false);
-                            southPanel.removeAll();
-                            validate();
-                            repaint();
-                        } catch (Exception e) {
-                            Throwable t = Utils.getActualException(e);
-                            if (JConsole.isDebug()) {
-                                System.err.println("Problem displaying MBean " +
-                                        "attribute for MBean [" +
-                                        mbean.getObjectName() + "]");
-                                t.printStackTrace();
+                SwingWorker<MBeanAttributeInfo, Void> sw =
+                        new SwingWorker<MBeanAttributeInfo, Void>() {
+                            @Override
+                            public MBeanAttributeInfo doInBackground() {
+                                Object attrData = uo.getData();
+                                mbean = (XMBean) ((Object[]) attrData)[0];
+                                MBeanAttributeInfo mbai =
+                                        (MBeanAttributeInfo) ((Object[]) attrData)[1];
+                                mbeanAttributes.loadAttributes(mbean, new MBeanInfo(
+                                        null, null, new MBeanAttributeInfo[]{mbai},
+                                        null, null, null));
+                                return mbai;
                             }
-                            showErrorDialog(t.toString(),
-                                    Resources.getText("Problem displaying MBean"));
-                        }
-                    }
-                };
+
+                            @Override
+                            protected void done() {
+                                try {
+                                    MBeanAttributeInfo mbai = get();
+                                    if (!isSelectedNode(node, currentNode)) return;
+                                    invalidate();
+                                    mainPanel.removeAll();
+                                    JPanel attributePanel =
+                                            new JPanel(new BorderLayout());
+                                    JPanel attributeBorderPanel =
+                                            new JPanel(new BorderLayout());
+                                    attributeBorderPanel.setBorder(
+                                            BorderFactory.createTitledBorder(
+                                                    Resources.getText("Attribute value")));
+                                    JPanel attributeValuePanel =
+                                            new JPanel(new BorderLayout());
+                                    attributeValuePanel.setBorder(
+                                            LineBorder.createGrayLineBorder());
+                                    attributeValuePanel.add(mbeanAttributes.getTableHeader(),
+                                            BorderLayout.PAGE_START);
+                                    attributeValuePanel.add(mbeanAttributes,
+                                            BorderLayout.CENTER);
+                                    attributeBorderPanel.add(attributeValuePanel,
+                                            BorderLayout.CENTER);
+                                    JPanel refreshButtonPanel = new JPanel();
+                                    refreshButtonPanel.add(refreshButton);
+                                    attributeBorderPanel.add(refreshButtonPanel,
+                                            BorderLayout.SOUTH);
+                                    refreshButton.setEnabled(true);
+                                    attributePanel.add(attributeBorderPanel,
+                                            BorderLayout.NORTH);
+                                    mbi.addMBeanAttributeInfo(mbai);
+                                    attributePanel.add(mbi, BorderLayout.CENTER);
+                                    mainPanel.add(attributePanel,
+                                            BorderLayout.CENTER);
+                                    southPanel.setVisible(false);
+                                    southPanel.removeAll();
+                                    validate();
+                                    repaint();
+                                } catch (Exception e) {
+                                    Throwable t = Utils.getActualException(e);
+                                    if (JConsole.isDebug()) {
+                                        System.err.println("Problem displaying MBean " +
+                                                "attribute for MBean [" +
+                                                mbean.getObjectName() + "]");
+                                        t.printStackTrace();
+                                    }
+                                    showErrorDialog(t.toString(),
+                                            Resources.getText("Problem displaying MBean"));
+                                }
+                            }
+                        };
                 sw.execute();
                 break;
             case OPERATION:
@@ -298,7 +300,7 @@ public class XSheet extends JPanel
                         (MBeanOperationInfo) ((Object[]) operData)[1];
                 mbeanOperations.loadOperations(mbean,
                         new MBeanInfo(null, null, null, null,
-                        new MBeanOperationInfo[] {mboi}, null));
+                                new MBeanOperationInfo[]{mboi}, null));
                 invalidate();
                 mainPanel.removeAll();
                 JPanel operationPanel = new JPanel(new BorderLayout());
@@ -328,7 +330,7 @@ public class XSheet extends JPanel
                 break;
         }
     }
-    
+
     // Call on EDT
     private void displayMBeanAttributesNode(final DefaultMutableTreeNode node) {
         final XNodeInfo uo = (XNodeInfo) node.getUserObject();
@@ -336,13 +338,14 @@ public class XSheet extends JPanel
             return;
         }
         mbean = (XMBean) uo.getData();
-        SwingWorker<Void,Void> sw = new SwingWorker<Void,Void>() {
+        SwingWorker<Void, Void> sw = new SwingWorker<Void, Void>() {
             @Override
             public Void doInBackground() throws InstanceNotFoundException,
                     IntrospectionException, ReflectionException, IOException {
                 mbeanAttributes.loadAttributes(mbean, mbean.getMBeanInfo());
                 return null;
             }
+
             @Override
             protected void done() {
                 try {
@@ -377,7 +380,7 @@ public class XSheet extends JPanel
         };
         sw.execute();
     }
-    
+
     // Call on EDT
     private void displayMBeanOperationsNode(final DefaultMutableTreeNode node) {
         final XNodeInfo uo = (XNodeInfo) node.getUserObject();
@@ -385,12 +388,13 @@ public class XSheet extends JPanel
             return;
         }
         mbean = (XMBean) uo.getData();
-        SwingWorker<MBeanInfo,Void> sw = new SwingWorker<MBeanInfo,Void>() {
+        SwingWorker<MBeanInfo, Void> sw = new SwingWorker<MBeanInfo, Void>() {
             @Override
             public MBeanInfo doInBackground() throws InstanceNotFoundException,
                     IntrospectionException, ReflectionException, IOException {
                 return mbean.getMBeanInfo();
             }
+
             @Override
             protected void done() {
                 try {
@@ -425,7 +429,7 @@ public class XSheet extends JPanel
         };
         sw.execute();
     }
-    
+
     // Call on EDT
     private void displayMBeanNotificationsNode(DefaultMutableTreeNode node) {
         final XNodeInfo uo = (XNodeInfo) node.getUserObject();
@@ -454,7 +458,7 @@ public class XSheet extends JPanel
         validate();
         repaint();
     }
-    
+
     // Call on EDT
     private void displayEmptyNode() {
         invalidate();
@@ -463,7 +467,7 @@ public class XSheet extends JPanel
         validate();
         repaint();
     }
-    
+
     /**
      * Subscribe button action.
      */
@@ -471,10 +475,11 @@ public class XSheet extends JPanel
         new SwingWorker<Void, Void>() {
             @Override
             public Void doInBackground()
-            throws InstanceNotFoundException, IOException {
+                    throws InstanceNotFoundException, IOException {
                 mbeanNotifications.registerListener(currentNode);
                 return null;
             }
+
             @Override
             protected void done() {
                 try {
@@ -493,7 +498,7 @@ public class XSheet extends JPanel
             }
         }.execute();
     }
-    
+
     /**
      * Unsubscribe button action.
      */
@@ -503,6 +508,7 @@ public class XSheet extends JPanel
             public Boolean doInBackground() {
                 return mbeanNotifications.unregisterListener(currentNode);
             }
+
             @Override
             protected void done() {
                 try {
@@ -522,14 +528,14 @@ public class XSheet extends JPanel
             }
         }.execute();
     }
-    
+
     /**
      * Refresh button action.
      */
     private void refreshAttributes() {
         mbeanAttributes.refreshAttributes();
     }
-    
+
     // Call on EDT
     private void updateNotifications() {
         if (mbeanNotifications.isListenerRegistered(mbean)) {
@@ -539,7 +545,7 @@ public class XSheet extends JPanel
             clearNotifications();
         }
     }
-    
+
     /**
      * Update notification node label in MBean tree: "Notifications[received]".
      */
@@ -548,13 +554,13 @@ public class XSheet extends JPanel
             DefaultMutableTreeNode emitter, long received, boolean bold) {
         String text = Resources.getText("Notifications") + "[" + received + "]";
         DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode)
-        mbeansTab.getTree().getLastSelectedPathComponent();
+                mbeansTab.getTree().getLastSelectedPathComponent();
         if (bold && emitter != selectedNode) {
             text = "<html><b>" + text + "</b></html>";
         }
         updateNotificationsNodeLabel(emitter, text);
     }
-    
+
     /**
      * Update notification node label in MBean tree: "Notifications".
      */
@@ -563,7 +569,7 @@ public class XSheet extends JPanel
         updateNotificationsNodeLabel(currentNode,
                 Resources.getText("Notifications"));
     }
-    
+
     /**
      * Update notification node label in MBean tree: "Notifications[0]".
      */
@@ -572,7 +578,7 @@ public class XSheet extends JPanel
         updateNotificationsNodeLabel(currentNode,
                 Resources.getText("Notifications") + "[0]");
     }
-    
+
     /**
      * Update the label of the supplied MBean tree node.
      */
@@ -593,7 +599,7 @@ public class XSheet extends JPanel
             repaint();
         }
     }
-    
+
     /**
      * Clear button action.
      */
@@ -616,7 +622,7 @@ public class XSheet extends JPanel
             clearNotifications();
         }
     }
-    
+
     // Call on EDT
     private void clear() {
         mbeanAttributes.stopCellEditing();
@@ -629,7 +635,7 @@ public class XSheet extends JPanel
         mbean = null;
         currentNode = null;
     }
-    
+
     /**
      * Notification listener: handles asynchronous reception
      * of MBean operation results and MBean notifications.
@@ -684,7 +690,7 @@ public class XSheet extends JPanel
             updateReceivedNotifications(emitter, received.longValue(), true);
         }
     }
-    
+
     /**
      * Action listener: handles actions in panel buttons
      */

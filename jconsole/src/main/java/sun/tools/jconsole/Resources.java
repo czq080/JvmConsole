@@ -20,28 +20,30 @@ public final class Resources {
 
     private static final Object lock = new Object();
     private static JConsoleResources resources = null;
+
     static {
-	try {
-	    resources =
-		(JConsoleResources)ResourceBundle.getBundle("sun.tools.jconsole.resources.JConsoleResources");
-	} catch (MissingResourceException e) {
-	    // gracefully handle this later
-	}
+        try {
+            resources =
+                    (JConsoleResources) ResourceBundle.getBundle("sun.tools.jconsole.resources.JConsoleResources");
+        } catch (MissingResourceException e) {
+            // gracefully handle this later
+        }
     }
 
-    private Resources() { throw new AssertionError(); }
+    private Resources() {
+        throw new AssertionError();
+    }
 
     /**
      * Returns the text of the jconsole resource for the specified key
      * formatted with the specified arguments.
-     *
      */
     public static String getText(String key, Object... args) {
-	String format = getString(key);
-	if (format == null) {
-	    format = "missing resource key: key = \"" + key + "\", " +
-		"arguments = \"{0}\", \"{1}\", \"{2}\"";
-	}
+        String format = getString(key);
+        if (format == null) {
+            format = "missing resource key: key = \"" + key + "\", " +
+                    "arguments = \"{0}\", \"{1}\", \"{2}\"";
+        }
         return formatMessage(format, args);
     }
 
@@ -59,37 +61,35 @@ public final class Resources {
 
     /**
      * Returns the mnemonic keycode int of the jconsole resource for the specified key.
-     *
      */
     public static int getMnemonicInt(String key) {
-	int mnemonic = 0;
-	if (resources != null) {
-	    Object obj = resources.getObject(key+".mnemonic");
-	    if (obj instanceof Character) {
-		mnemonic = (int)(Character)obj;
-		if (mnemonic >= 'a' && mnemonic <='z') {
-		    mnemonic -= ('a' - 'A');
-		}
-	    } else if (obj instanceof Integer) {
-		mnemonic = (Integer)obj;
-	    }
-	}
-	return mnemonic;
+        int mnemonic = 0;
+        if (resources != null) {
+            Object obj = resources.getObject(key + ".mnemonic");
+            if (obj instanceof Character) {
+                mnemonic = (int) (Character) obj;
+                if (mnemonic >= 'a' && mnemonic <= 'z') {
+                    mnemonic -= ('a' - 'A');
+                }
+            } else if (obj instanceof Integer) {
+                mnemonic = (Integer) obj;
+            }
+        }
+        return mnemonic;
     }
 
     /**
      * Returns the jconsole resource string for the specified key.
-     *
      */
     private static String getString(String key) {
-	if (resources != null) {
-	    try {
-		return resources.getString(key);
-	    } catch (MissingResourceException e) {
-		return null;
-	    }
-	}
-	return "missing resource bundle: key = \"" + key + "\", " +
-	    "arguments = \"{0}\", \"{1}\", \"{2}\"";
+        if (resources != null) {
+            try {
+                return resources.getString(key);
+            } catch (MissingResourceException e) {
+                return null;
+            }
+        }
+        return "missing resource bundle: key = \"" + key + "\", " +
+                "arguments = \"{0}\", \"{1}\", \"{2}\"";
     }
 }

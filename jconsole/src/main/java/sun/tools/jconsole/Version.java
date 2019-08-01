@@ -11,19 +11,19 @@ import java.io.PrintStream;
 
 public class Version {
     private static final String jconsole_version =
-        "@@jconsole_version@@";
+            "@@jconsole_version@@";
 
     public static void print(PrintStream ps) {
         printFullVersion(ps);
 
         ps.println(Resources.getText("Name and Build",
-                                     System.getProperty("java.runtime.name"), 
-                                     System.getProperty("java.runtime.version")));
+                System.getProperty("java.runtime.name"),
+                System.getProperty("java.runtime.version")));
 
         ps.println(Resources.getText("Name Build and Mode",
-                                     System.getProperty("java.vm.name"),
-                                     System.getProperty("java.vm.version"),
-                                     System.getProperty("java.vm.info"))); 
+                System.getProperty("java.vm.name"),
+                System.getProperty("java.vm.version"),
+                System.getProperty("java.vm.info")));
 
     }
 

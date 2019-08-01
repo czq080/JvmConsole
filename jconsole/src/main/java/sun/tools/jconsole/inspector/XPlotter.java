@@ -14,13 +14,15 @@ import javax.swing.*;
 @SuppressWarnings("serial")
 public class XPlotter extends Plotter {
     JTable table;
-    public XPlotter(JTable table, 
-		    Plotter.Unit unit) {
-	super(unit);
-	this.table = table;
+
+    public XPlotter(JTable table,
+                    Plotter.Unit unit) {
+        super(unit);
+        this.table = table;
     }
+
     public void addValues(long time, long... values) {
-	super.addValues(time, values);
-	table.repaint();	
+        super.addValues(time, values);
+        table.repaint();
     }
 }
