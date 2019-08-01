@@ -77,8 +77,10 @@ public class JConsole extends JFrame
             Class.forName("sun.management.ConnectorAddressLink");
             supported = true;
         } catch (NoClassDefFoundError x) {
+            x.printStackTrace();
             supported = false;
         } catch (ClassNotFoundException x) {
+            x.printStackTrace();
             supported = false;
         }
         localAttachmentSupported = supported;

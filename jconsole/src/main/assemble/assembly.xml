@@ -4,6 +4,23 @@
 		<format>tar.gz</format>
 	</formats>
 	<includeBaseDirectory>true</includeBaseDirectory>
+	<fileSets>
+		<fileSet>
+			<directory>/../</directory>
+			<outputDirectory>lib</outputDirectory>
+			<fileMode>0644</fileMode>
+			<includes>
+				<include>tools.jar</include>
+			</includes>
+			<lineEnding>unix</lineEnding>
+		</fileSet>
+		<fileSet>
+			<directory>src/main/script
+			</directory>
+			<outputDirectory>script</outputDirectory>
+			<fileMode>0755</fileMode>
+		</fileSet>
+	</fileSets>
 	<dependencySets>
 		<dependencySet>
 			<outputDirectory>lib</outputDirectory>
