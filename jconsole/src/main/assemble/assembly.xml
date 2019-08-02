@@ -8,16 +8,14 @@
 		<fileSet>
 			<directory>/../</directory>
 			<outputDirectory>lib</outputDirectory>
-			<fileMode>0644</fileMode>
 			<includes>
 				<include>tools.jar</include>
 			</includes>
-			<lineEnding>unix</lineEnding>
 		</fileSet>
 		<fileSet>
 			<directory>src/main/script
 			</directory>
-			<outputDirectory>script</outputDirectory>
+			<outputDirectory>bin</outputDirectory>
 			<fileMode>0755</fileMode>
 		</fileSet>
 	</fileSets>
