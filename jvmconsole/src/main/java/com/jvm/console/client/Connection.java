@@ -1,4 +1,4 @@
-package com.jvm.console.machine;
+package com.jvm.console.client;
 
 import java.io.IOException;
 
@@ -11,5 +11,5 @@ import java.io.IOException;
 public interface Connection {
     void connect() throws IOException;
 
-    void disconnect();
+    void close() throws IOException;
 }

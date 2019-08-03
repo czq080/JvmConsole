@@ -1,10 +1,15 @@
 package com.jvm.console.machine;
 
 /**
- * @Author:xyt
- * @Description:
- * @Date: 11:09 2019/8/2
- * @Modified By:
+ * @author xyt
+ * @date 2019/8/3
  */
-public abstract class Machine implements Connection {
+public abstract class Machine implements MachinePower {
+    public abstract String id();
+
+    public abstract String name();
+
+    public abstract String address();
+
+    public abstract boolean useCredentials();
 }

@@ -25,12 +25,32 @@ public class LocalJvmMachine extends Machine {
     private int pid;
     private boolean isAttachSupported;
 
-    public LocalJvmMachine(String address, String commandLine, String name, int pid, boolean isAttachSupported) {
+
+    public LocalJvmMachine(String address, String commandLine, int pid, boolean isAttachSupported) {
         this.address = address;
         this.commandLine = commandLine;
-        this.name = name;
         this.pid = pid;
         this.isAttachSupported = isAttachSupported;
+    }
+
+    @Override
+    public String id() {
+        return String.valueOf(this.pid);
+    }
+
+    @Override
+    public String name() {
+        return this.name;
+    }
+
+    @Override
+    public String address() {
+        return address;
+    }
+
+    @Override
+    public boolean useCredentials() {
+        return false;
     }
 
     private static String getDisplayName(String commandLine) {
@@ -48,7 +68,7 @@ public class LocalJvmMachine extends Machine {
     }
 
     @Override
-    public void connect() throws IOException {
+    public void open() throws IOException {
         if (this.address == null || (this.address = findAddressByPid(pid)) == null) {
             String msg = String.format("could not get address for jvm[%s][%s]", this.name, this.pid);
             throw new IOException(msg);
@@ -56,7 +76,7 @@ public class LocalJvmMachine extends Machine {
     }
 
     @Override
-    public void disconnect() {
+    public void close() {
 
     }
 
@@ -111,39 +131,30 @@ public class LocalJvmMachine extends Machine {
         return address;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
     public String getCommandLine() {
         return commandLine;
-    }
-
-    public void setCommandLine(String commandLine) {
-        this.commandLine = commandLine;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getVmid() {
-        return vmid;
-    }
-
-    public void setVmid(int vmid) {
-        this.vmid = vmid;
+    public int getPid() {
+        return pid;
     }
 
     public boolean isAttachSupported() {
         return isAttachSupported;
     }
 
-    public void setAttachSupported(boolean attachSupported) {
-        isAttachSupported = attachSupported;
+    @Override
+    public String toString() {
+        return "LocalJvmMachine{" +
+                "address='" + address + '\'' +
+                ", commandLine='" + commandLine + '\'' +
+                ", name='" + name + '\'' +
+                ", pid=" + pid +
+                ", isAttachSupported=" + isAttachSupported +
+                "} " + super.toString();
     }
 }
