@@ -1,6 +1,8 @@
 package com.jvm.console.client;
 
 import com.jvm.console.machine.Machine;
+import com.jvm.console.memory.Memory;
+import com.jvm.console.memory.MemoryPoolManager;
 import com.sun.management.HotSpotDiagnosticMXBean;
 
 import javax.management.*;
@@ -8,10 +10,7 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.lang.management.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.jvm.console.common.Constant.HOTSPOT_DIAGNOSTIC_MXBEAN_NAME;
 import static java.lang.management.ManagementFactory.*;
@@ -30,10 +29,11 @@ public abstract class JmxClient implements Connection {
     private boolean hasCompilationMXBean = false;
     private boolean supportsLockUsage = false;
     private MBeanServerConnection mbsc = null;
-    private SnapshotMBeanServerConnection server = null;
+    private MBeanServerConnection server = null;
     private ClassLoadingMXBean classLoadingMBean = null;
     private CompilationMXBean compilationMBean = null;
     private MemoryMXBean memoryMBean = null;
+    private MemoryPoolManager memoryPoolManager = null;
     private OperatingSystemMXBean operatingSystemMBean = null;
     private RuntimeMXBean runtimeMBean = null;
     private ThreadMXBean threadMBean = null;
@@ -62,8 +62,9 @@ public abstract class JmxClient implements Connection {
                 this.jmxc = jmxConnect(this.jmxUrl);
                 this.mbsc = jmxc.getMBeanServerConnection();
             }
-            MBeanServerConnectionProxy proxy = new MBeanServerConnectionProxy(this.mbsc);
-            this.server = proxy.getInstace();
+            //动态代理增加缓存功能，是否有必要
+//            MBeanServerConnectionProxy proxy = new MBeanServerConnectionProxy(this.mbsc);
+            this.server = mbsc;
             try {
                 ObjectName on = new ObjectName(THREAD_MXBEAN_NAME);
                 this.hasPlatformMXBeans = server.isRegistered(on);
@@ -191,6 +192,13 @@ public abstract class JmxClient implements Connection {
         return memoryMBean;
     }
 
+    public synchronized List<Memory> getMemoryPool() throws IOException {
+        if (hasPlatformMXBeans && memoryPoolManager == null) {
+            memoryPoolManager = new MemoryPoolManager(this);
+        }
+        return memoryPoolManager.memoryPool();
+    }
+
     public synchronized RuntimeMXBean getRuntimeMXBean() throws IOException {
         if (hasPlatformMXBeans && runtimeMBean == null) {
             runtimeMBean =
@@ -217,6 +225,10 @@ public abstract class JmxClient implements Connection {
                             OperatingSystemMXBean.class);
         }
         return operatingSystemMBean;
+    }
+
+    public boolean isLockUsageSupported() {
+        return supportsLockUsage;
     }
 
     public synchronized com.sun.management.OperatingSystemMXBean
@@ -250,10 +262,89 @@ public abstract class JmxClient implements Connection {
         return hotspotDiagnosticMXBean;
     }
 
+    public synchronized ClassLoadingMXBean getClassLoadingMXBean() throws IOException {
+        if (hasPlatformMXBeans && classLoadingMBean == null) {
+            classLoadingMBean =
+                    newPlatformMXBeanProxy(server, CLASS_LOADING_MXBEAN_NAME,
+                            ClassLoadingMXBean.class);
+        }
+        return classLoadingMBean;
+    }
+
+    public synchronized CompilationMXBean getCompilationMXBean() throws IOException {
+        if (hasCompilationMXBean && compilationMBean == null) {
+            compilationMBean =
+                    newPlatformMXBeanProxy(server, COMPILATION_MXBEAN_NAME,
+                            CompilationMXBean.class);
+        }
+        return compilationMBean;
+    }
+
     public <T> T getMXBean(ObjectName objName, Class<T> interfaceClass)
             throws IOException {
         return newPlatformMXBeanProxy(server,
                 objName.toString(),
                 interfaceClass);
+    }
+
+    public long[] findDeadlockedThreads() throws IOException {
+        ThreadMXBean tm = getThreadMXBean();
+        if (supportsLockUsage && tm.isSynchronizerUsageSupported()) {
+            return tm.findDeadlockedThreads();
+        } else {
+            return tm.findMonitorDeadlockedThreads();
+        }
+    }
+
+    /**
+     * Returns a list of attributes of a named MBean.
+     */
+    public AttributeList getAttributes(ObjectName name, String[] attributes)
+            throws IOException {
+        AttributeList list = null;
+        try {
+            list = server.getAttributes(name, attributes);
+        } catch (InstanceNotFoundException e) {
+            // TODO: A MBean may have been unregistered.
+            // need to set up listener to listen for MBeanServerNotification.
+        } catch (ReflectionException e) {
+            // TODO: should log the error
+        }
+        return list;
+    }
+
+    public Map<ObjectName, MBeanInfo> getMBeans(String domain, String ext)
+            throws IOException {
+
+        ObjectName name = null;
+        if (domain != null) {
+            try {
+                name = new ObjectName(domain + ext);
+            } catch (MalformedObjectNameException e) {
+                // should not reach here
+                assert (false);
+            }
+        }
+        Set mbeans = server.queryNames(name, null);
+        Map<ObjectName, MBeanInfo> result =
+                new HashMap<ObjectName, MBeanInfo>(mbeans.size());
+        Iterator iterator = mbeans.iterator();
+        while (iterator.hasNext()) {
+            Object object = iterator.next();
+            if (object instanceof ObjectName) {
+                ObjectName o = (ObjectName) object;
+                try {
+                    MBeanInfo info = server.getMBeanInfo(o);
+                    result.put(o, info);
+                } catch (IntrospectionException e) {
+                    System.err.println(e);
+                } catch (InstanceNotFoundException e) {
+                    System.err.println(e);
+                } catch (ReflectionException e) {
+                    System.err.println(e);
+                }
+            }
+        }
+        return result;
     }
 }
