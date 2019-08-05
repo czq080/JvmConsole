@@ -86,7 +86,7 @@ public class MachineUtil {
             System.out.println(String.format("jvm pid is %s, info[%s]", pid, machine));
         }
         JmxClientManager jmxClientManager = JmxClientManager.getInstance();
-        final JmxClient jmxClient = jmxClientManager.init(machineMap.get(7436));
+        final JmxClient jmxClient = jmxClientManager.init(machineMap.get(17852));
         jmxClientManager.connect(jmxClient);
         Timer memoryTimer = new Timer();
         memoryTimer.schedule(new TimerTask() {

@@ -69,7 +69,7 @@ public class LocalJvmMachine extends Machine {
 
     @Override
     public void open() throws IOException {
-        if (this.address == null || (this.address = findAddressByPid(pid)) == null) {
+        if (this.address == null && (this.address = findAddressByPid(pid)) == null) {
             String msg = String.format("could not get address for jvm[%s][%s]", this.name, this.pid);
             throw new IOException(msg);
         }
